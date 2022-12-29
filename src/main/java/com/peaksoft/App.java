@@ -9,31 +9,51 @@ public class App {
     public static void main(String[] args) {
 
 
-//        createTable();
-//        System.out.println(getCount());
-//dropTable();
-    addCity("Moscow", "Sobyanin");
-//    addCity("Bishkek", "Djunushaliev");
-//    addCity("New York", "Adams");
-//    addCity("Tokyo", "Youriko");
-//    addCity("Istanbul", "Imamoglu");
-//getAllCites();
+        createTable();
+        dropTable();
+        addCity("Moscow", "Sobyanin");
+        addCity("Bishkek", "Djunushaliev");
+        addCity("New York", "Adams");
+        addCity("Tokyo", "Youriko");
+        addCity("Istanbul", "Imamoglu");
+        getAllCites();
+        getByIdCity(2);
+
+        createTable1();
+        AddCountry("Russia", "Moscow");
+        AddCountry("Kyrgyzstan", "Bishkek");
+        AddCountry("U.S.A", "New York");
+        AddCountry("Korea", "Tokyo");
+        AddCountry("Turkey", "Istanbul");
+        getAllCountries();
+
+
+        createTable2();
+        AddPresidents("Sobyanin", "Moscow");
+        AddPresidents("Djunushaliev", "Bishkek");
+        AddPresidents("Adams", "New York");
+        AddPresidents("Youriko", "Tokyo");
+        AddPresidents("Imamoglu", "Istanbul");
+
 
     }
-public static void dropTable(){
+
+    public static void dropTable() {
         String SQL = "DROP TABLE cities";
-        try(Connection connection = Task.connection();
-        Statement statement = connection.createStatement()){
+        try (Connection connection = Task.connection();
+             Statement statement = connection.createStatement()) {
             statement.executeUpdate(SQL);
-        }catch (SQLException e){
+        } catch (SQLException e) {
             e.printStackTrace();
         }
-}
+    }
+
     public static void createTable() {
         String SQL = "CREATE TABLE IF NOT EXISTS cities(" +
-                "id SERIAL PRIMARY KEY," +
-                "name VARCHAR (50), " +
-                " president_of_city VARCHAR (128));";
+                "id SERIAL PRIMARY KEY ," +
+                "name VARCHAR (50) NOT NULL, " +
+                " president_of_city VARCHAR (128) NOT NULL, " +
+                "UNIQUE (name, president_of_city) );";
         try (Connection conn = Task.connection();
              Statement statement = conn.createStatement()) {
             statement.executeUpdate(SQL);
@@ -42,21 +62,7 @@ public static void dropTable(){
         }
     }
 
-    public static int getCount() {
-        String SQL = "SELECT count(*) FROM cities";
-        int count = 0;
-        try (Connection conn = Task.connection();
-             Statement statement = conn.createStatement();
-             ResultSet resultSet = statement.executeQuery(SQL)) {
-            resultSet.next();
-            count = resultSet.getInt(1);
-        } catch (SQLException e) {
-            e.printStackTrace();
-        }
-        return count;
-    }
-
-    public static void addCity( String name, String president_Of_city) {
+    public static void addCity(String name, String president_Of_city) {
         String SQL = "INSERT INTO cities ( name, president_of_city) VALUES (?,?)";
         try (Connection conn = Task.connection();
              PreparedStatement statement = conn.prepareStatement(SQL)) {
@@ -87,8 +93,8 @@ public static void dropTable(){
         return cities;
     }
 
-    public static City getById(int id) {
-        String SQL = "SELECT * FROM users WHERE id = ?";
+    public static City getByIdCity(int id) {
+        String SQL = "SELECT * FROM cities WHERE id = ?";
         City city = new City();
         try (Connection connection = Task.connection();
              PreparedStatement statement = connection.prepareStatement(SQL)) {
@@ -109,8 +115,8 @@ public static void dropTable(){
     public static void createTable1() {
         String SQL = "CREATE TABLE IF NOT EXISTS coutries(" +
                 "id SERIAL PRIMARY KEY," +
-                "name VARCHAR (40)," +
-                "president_of_country VARCHAR(20));";
+                "name VARCHAR (50)," +
+                "city_of_country VARCHAR(50) REFERENCES cities (name));";
         try (Connection connection = Task.connection();
              Statement statement = connection.createStatement()) {
             statement.executeUpdate(SQL);
@@ -119,37 +125,61 @@ public static void dropTable(){
         }
     }
 
-    public static int getCount1() {
-        String SQL = "SELECT count(*) FROM countries";
-        int count = 0;
-        try (Connection connection = Task.connection();
-             Statement statement = connection.createStatement();
-             ResultSet resultSet = statement.executeQuery(SQL)) {
-            resultSet.next();
-            count = resultSet.getInt(1);
-        } catch (SQLException e) {
-            e.printStackTrace();
-        }
-        return count;
-    }
-
-    public static void AddCountry(String name, String president_of_country) {
-        String SQL = "INSERT INTO countries (name, president_of_countries) VALUES(?,?)";
+    public static void AddCountry(String name, String city_of_country) {
+        String SQL = "INSERT INTO countries (name, city_of_countries) VALUES(?,?)";
         try (Connection connection = Task.connection();
              PreparedStatement statement = connection.prepareStatement(SQL)) {
             statement.setString(1, name);
-            statement.setString(2, president_of_country);
+            statement.setString(2, city_of_country);
             statement.executeUpdate();
         } catch (SQLException e) {
             e.printStackTrace();
         }
     }
 
+    public static List<Country> getAllCountries() {
+        String SQL = "SELECT * FROM countries";
+        List<Country> countries = new ArrayList<>();
+        try (Connection connection = Task.connection();
+             Statement statement = connection.createStatement();
+             ResultSet resultSet = statement.executeQuery(SQL)) {
+            while (resultSet.next()) {
+                Country country = new Country();
+                country.setId(resultSet.getInt("id"));
+                country.setName(resultSet.getString("name"));
+                country.setCity_of_country(resultSet.getString("city_of_country"));
+                countries.add(country);
+            }
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+        return countries;
+    }
+
+//    public static Country getByIdCountry(int id) {
+//        String SQL = "SELECT * FROM countries WHERE id = ?";
+//        Country country = new Country();
+//        try (Connection connection = Task.connection();
+//             PreparedStatement statement = connection.prepareStatement(SQL)) {
+//            statement.setInt(1, id);
+//            ResultSet resultSet = statement.executeQuery();
+//            if (resultSet.next()) {
+//                country.setId(resultSet.getInt("id"));
+//                country.setName(resultSet.getString("name"));
+//                country.setCity_of_country(resultSet.getString("city_of_country"));
+//            }
+//        } catch (SQLException e) {
+//            e.printStackTrace();
+//        }
+//        return country;
+//    }
+
+
     public static void createTable2() {
-        String SQL = "CREATE TABLE IF NOT EXISTS mayors(" +
+        String SQL = "CREATE TABLE IF NOT EXISTS president_of_city(" +
                 "id SERIAL PRIMARY KEY," +
                 "name VARCHAR(50)," +
-                "age INT);";
+                "president_of_city VARCHAR(120) REFERENCES city (name));";
         try (Connection connection = Task.connection();
              Statement statement = connection.createStatement()) {
             statement.executeUpdate(SQL);
@@ -158,26 +188,13 @@ public static void dropTable(){
         }
     }
 
-    public static int getCount2() {
-        String SQL = "SELECT count(*) FROM mayors";
-        int count = 0;
-        try (Connection connection = Task.connection();
-             Statement statement = connection.createStatement();
-             ResultSet resultSet = statement.executeQuery(SQL)) {
-            resultSet.next();
-            count = resultSet.getInt(1);
-        } catch (SQLException e) {
-            e.printStackTrace();
-        }
-        return count;
-    }
 
-    public static void AddMayors(String name, int age) {
-        String SQL = "INSERT INTO countries (name, age) VALUES(?,?)";
+    public static void AddPresidents(String name, String president_of_city) {
+        String SQL = "INSERT INTO countries (, name, president_of_city) VALUES(?,?)";
         try (Connection connection = Task.connection();
              PreparedStatement statement = connection.prepareStatement(SQL)) {
-            statement.setString(1, name);
-            statement.setInt(2, age);
+            statement.setString(2, name);
+            statement.setString(3, president_of_city);
             statement.executeUpdate();
         } catch (SQLException e) {
             e.printStackTrace();
